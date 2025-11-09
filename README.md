@@ -23,5 +23,3 @@ If you want to contribute or have questions about reverse engineering their bina
 # Explanation
 
 See https://frederickalt.github.io/
-
-# Disclaimer
