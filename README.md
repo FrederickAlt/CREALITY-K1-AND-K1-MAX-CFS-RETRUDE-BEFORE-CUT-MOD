@@ -22,4 +22,4 @@ If you want to contribute or have questions about reverse engineering their bina
 
 # Explanation
 
-See https://frederickalt.github.io/
+See [creality-k1-improved-purging](https://frederickalt.github.io/blog/creality-k1-improved-purging/)
