@@ -1,5 +1,7 @@
 This Repository implements a pre-cut retrusion for clreality k1 and k1 max. I have reverse engineered their cythonized binary with the source `box_wrapper.py` to be able to make this mod. The mod was made in conjunction with **Orca Slicer**. If you use a different slicer you might need to figure out how to configure thinks there.
 
+![major-update-to-reduce-purge-waste-save-up-to-25-v0-63u7bse3k9tc1](https://github.com/user-attachments/assets/4fa41371-4e46-406a-9f08-ab9c25b2cf0e)
+
 # Instructions
 
 1. Backup you **box.cfg** file.
