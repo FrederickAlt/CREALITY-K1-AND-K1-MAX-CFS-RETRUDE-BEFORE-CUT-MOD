@@ -18,7 +18,7 @@ T{next_extruder} LEN={if purge_in_prime_tower}0{else}{second_flush_volume/2,4052
 
 # Contribution/Issues
 
-If you want to contribute or have questions about reverse engineering their binary you can contact me. If you find an issue, please report it and i may fix it.
+If you want to contribute please make a pull request or if you have questions about reverse engineering their binary you can contact me. If you find an issue, please report it and i may fix it.
 
 # Explanation
 
