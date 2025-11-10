@@ -27,7 +27,7 @@ variable_purge_speed: 15 # volumetric speed mm3/s
 ```
 Most of it is self explanatory but `variable_max_wait_for_preload` is just a timeout for a very special case that usually never happens. You can just ignore it. If it interests you, check my blog.
 
-Note, the settings `[box]` have the same meaning as without the mod.
+Note, the settings under `[box]` have the same meaning as without the mod.
 
 # Contribution/Issues
 
