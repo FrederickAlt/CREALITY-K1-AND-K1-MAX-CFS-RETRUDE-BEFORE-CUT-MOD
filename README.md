@@ -8,6 +8,12 @@ The mechanism is inspired by Bamu's post:
 1. Backup you **box.cfg** file.
 2. Replace the **box.cfg** file with the provided one.
 3. From you backup **box.cfg** copy everything in the `[box]` section and replace this in the provided **box.cfg**
+4. Add to your **printer.cfg** (if not present) 
+```
+[save_variables]
+filename: ~/variables2.cfg
+``` 
+wich allows the script to save what is loaded.
 4. In **Orca Slicer** go to *Printer-settings -> Machine G-code -> Machine start G-code* and **append**
 ```
 [bed_temperature_initial_layer_single]
