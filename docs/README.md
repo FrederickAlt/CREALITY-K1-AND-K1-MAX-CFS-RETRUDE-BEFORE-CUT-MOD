@@ -65,4 +65,3 @@ the safety notes in [`klipper-macros.md`](klipper-macros.md),
 | Configure or debug automatic refill | [`auto-refill.md`](auto-refill.md) |
 | Validate uncertain behavior on hardware | [`hardware-validation-checklist.md`](hardware-validation-checklist.md) |
 | Build an independent wrapper | [`protocol-reference.md`](protocol-reference.md), [`material-change-flow.md`](material-change-flow.md), [`persistence-reference.md`](persistence-reference.md#what-this-means-for-a-new-wrapper), [`auto-refill.md`](auto-refill.md#what-this-means-for-a-new-wrapper), [`compatibility-caveats.md`](compatibility-caveats.md) |
-| See the documentation dependency map | [`WIKI_PLAN.md`](WIKI_PLAN.md) |
