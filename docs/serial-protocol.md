@@ -98,14 +98,14 @@ retry, heating, cutter, or cleaning workflows.
 | `BOX_GET_RFID ADDR=<1..4> NUM=<0..15>` | `GET_RFID` | `NUM` is masked with `0x0f` and sent as one slot-mask byte. |
 | `BOX_GET_REMAIN_LEN ADDR=<1..4> NUM=<0..15>` | `GET_REMAIN_LEN` | `NUM` is masked with `0x0f` and sent as one slot-mask byte. |
 | `BOX_GET_BUFFER_STATE ADDR=<1..4>` | `GET_BUFFER_STATE` | No data bytes. |
-| `BOX_GET_FILAMENT_SENSOR_STATE ADDR=<1..4> POSITION=MATERIAL|CONNECTIONS` | `GET_FILAMENT_SENSOR_STATE` | Sends one sensor-bank byte, then prints the decoded mask. |
-| `BOX_SET_BOX_MODE ADDR=<1..4> MODE=PRINT|IDLE [NUM=A|B|C|D|0]` | `SET_BOX_MODE` | Sends slot byte + mode byte. Missing `NUM` defaults to `0`. |
-| `BOX_CTRL_CONNECTION_MOTOR_ACTION ADDR=<1..4> ACTION=STOP|EXTRUDE|RETRUDE` | `CTRL_CONNECTION_MOTOR_ACTION` | Sends one action byte. |
-| `BOX_MEASURING_WHEEL NUM=<1..4> ACTION=GET|CLEAN` | `MEASURING_WHEEL` | `NUM` is the box address. Sends one action byte. |
-| `BOX_TIGHTEN_UP_ENABLE ADDR=<1..4> ENABLE=ENABLE|DISABLE` | `TIGHTEN_UP_ENABLE` | Sends one enable byte. |
-| `BOX_EXTRUDE_PROCESS ADDR=<1..9> NUM=A|B|C|D [VELOCITY=<1..30>]` | `EXTRUDE_PROCESS` | For supported versions documented here, this macro sends stage `0x02`; the parsed `VELOCITY` is not placed in the packet. |
-| `BOX_EXTRUDE_2_PROCESS ADDR=<1..4> NUM=A|B|C|D TRIGGER=CONNECTION|BUFFER` | `EXTRUDE_PROCESS_MODEL2` | Sends slot byte + trigger byte. |
-| `BOX_RETRUDE_PROCESS ADDR=<1..4> NUM=A|B|C|D|0 TRIGGER=BUFFER|MATERIAL` | `RETRUDE_PROCESS` | Sends slot byte + trigger byte. |
+| `BOX_GET_FILAMENT_SENSOR_STATE ADDR=<1..4> POSITION=MATERIAL\|CONNECTIONS` | `GET_FILAMENT_SENSOR_STATE` | Sends one sensor-bank byte, then prints the decoded mask. |
+| `BOX_SET_BOX_MODE ADDR=<1..4> MODE=PRINT\|IDLE [NUM=A\|B\|C\|D\|0]` | `SET_BOX_MODE` | Sends slot byte + mode byte. Missing `NUM` defaults to `0`. |
+| `BOX_CTRL_CONNECTION_MOTOR_ACTION ADDR=<1..4> ACTION=STOP\|EXTRUDE\|RETRUDE` | `CTRL_CONNECTION_MOTOR_ACTION` | Sends one action byte. |
+| `BOX_MEASURING_WHEEL NUM=<1..4> ACTION=GET\|CLEAN` | `MEASURING_WHEEL` | `NUM` is the box address. Sends one action byte. |
+| `BOX_TIGHTEN_UP_ENABLE ADDR=<1..4> ENABLE=ENABLE\|DISABLE` | `TIGHTEN_UP_ENABLE` | Sends one enable byte. |
+| `BOX_EXTRUDE_PROCESS ADDR=<1..9> NUM=A\|B\|C\|D [VELOCITY=<1..30>]` | `EXTRUDE_PROCESS` | For supported versions documented here, this macro sends stage `0x02`; the parsed `VELOCITY` is not placed in the packet. |
+| `BOX_EXTRUDE_2_PROCESS ADDR=<1..4> NUM=A\|B\|C\|D TRIGGER=CONNECTION\|BUFFER` | `EXTRUDE_PROCESS_MODEL2` | Sends slot byte + trigger byte. |
+| `BOX_RETRUDE_PROCESS ADDR=<1..4> NUM=A\|B\|C\|D\|0 TRIGGER=BUFFER\|MATERIAL` | `RETRUDE_PROCESS` | Sends slot byte + trigger byte. |
 | `BOX_SEND_DATA ADDR=<1..4> NUM=<0..32> STATE=<0..255> TIMEOUT=<1..120> [DATA=<digits>]` | raw `send_data` wrapper | Builds a normal request frame with custom command byte `NUM`. It is not a full raw-frame sender; see below. |
 | `BOX_COMMUNICATION_TEST ADDR=<1..4> NUM=<0..255> [COUNT] [TIMEOUT] [INTERVAL]` | `COMMUNICATION_TEST` | Diagnostic loop. Sends the same test frame repeatedly and expects returned data `(NUM + 1) & 0xff`. |
 
