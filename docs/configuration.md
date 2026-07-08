@@ -37,44 +37,7 @@ directory, including persisted box state, the material database, and the
 one-shot flushing sign. See
 [`runtime-reference.md#hard-coded-runtime-names-and-files`](runtime-reference.md#hard-coded-runtime-names-and-files).
 
-## Minimal example `[box]` section
 
-This is an illustrative starting point, not a verified hardware profile. Use the
-coordinates for your printer.
-
-```ini
-[box]
-bus: serial485
-has_extrude_pos: 1
-version: 0
-filament_sensor: filament_sensor_2
-switch_pin: ^your_cut_sensor_pin
-
-pre_cut_pos_x: 0
-pre_cut_pos_y: 0
-cut_pos_x: -6.5
-cut_pos_y: 0
-cut_pos_offset: 0
-cut_velocity: 6000
-cut_run_count: 1
-
-safe_pos_y: 350
-extrude_pos_x: 127
-extrude_pos_y: 368
-retrude_position_x: 42
-retrude_position_y: 100
-clean_velocity: 6000
-
-Tn_extrude_temp: 220
-Tn_extrude: 140
-Tn_extrude_percent: 100
-Tn_extrude_velocity: 2400
-Tn_retrude: -60
-Tn_retrude_velocity: 2400
-
-buffer_empty_len: 30
-diff_length: -10
-```
 
 ## Safe setup and calibration order
 
