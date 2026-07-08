@@ -6,9 +6,9 @@ not contain vendor source code, decompiler output, circumvention tools,
 access-control bypasses, or authentication secrets. Vendor/device names are used
 only to identify compatibility.
 
-These docs are for operators, integrators, and maintainers working from deployed
-Klipper/material-box configuration and device-visible behavior. Some behavior is
-hardware-specific or not fully validated; see
+These docs are for people who want to understand how to use the wrapper and how 
+the CFS works including how to use the serial interface of it and its commands. 
+Some behavior is hardware-specific or not fully validated; see
 [`hardware-validation-checklist.md`](hardware-validation-checklist.md) for checks
 that should be run on real machines.
 
