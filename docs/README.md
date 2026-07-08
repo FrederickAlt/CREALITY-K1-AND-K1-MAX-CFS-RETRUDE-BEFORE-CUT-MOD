@@ -50,8 +50,6 @@ the safety notes in [`klipper-macros.md`](klipper-macros.md),
 | [`load-retry-state-machine.md`](load-retry-state-machine.md) | Load failure recovery strategies and safe retry boundaries for independent wrappers. |
 | [`auto-refill.md`](auto-refill.md) | Runout handling, same-material matching, replacement selection, slot remapping, ending-material flow, and troubleshooting. |
 | [`hardware-validation-checklist.md`](hardware-validation-checklist.md) | Uncertain or hardware-specific behaviors that should be validated on real machines. |
-| [`box-cfg-changes.md`](box-cfg-changes.md) | Explanation of the generated robust manual-purge `box.cfg`, what changed from the supplied profile, and how to validate it safely. |
-| [`box-explicit-wrapper-flush.md`](box-explicit-wrapper-flush.md) | Explanation of `box-explicit-wrapper-flush.cfg`: explicit pre-cut retrude, cut, full retrude, wrapper load, controlled wrapper flush, remap mirror, and limitations. |
 
 ## Quick paths
 
