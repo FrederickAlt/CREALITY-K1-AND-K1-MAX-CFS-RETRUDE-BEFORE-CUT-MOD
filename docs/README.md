@@ -17,6 +17,12 @@ the safety notes in [`klipper-macros.md`](klipper-macros.md),
 [`sensors-and-hardware.md`](sensors-and-hardware.md), and
 [`compatibility-caveats.md`](compatibility-caveats.md).
 
+## Disclaimer 
+
+I am not guaranteeing correctness for any content of this documentation. Its inofficial
+and from my understanding of it. It can be false at places even though i do my best to 
+keep everything truthful.
+
 ## Recommended reading order
 
 1. [`serial-protocol.md`](serial-protocol.md)
