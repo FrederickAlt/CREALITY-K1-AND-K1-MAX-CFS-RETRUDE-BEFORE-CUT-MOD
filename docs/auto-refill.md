@@ -94,7 +94,7 @@ See [`state-model.md`](state-model.md) for the state-machine view.
 
 | Command | Purpose |
 |---|---|
-| `BOX_ENABLE_AUTO_REFILL ENABLE=<0|1>` | Enable or disable the runtime auto-refill flag. Intended values are `0`/`1`; other values should be avoided. |
+| `BOX_ENABLE_AUTO_REFILL ENABLE=<0\|1>` | Enable or disable the runtime auto-refill flag. Intended values are `0`/`1`; other values should be avoided. |
 | `BOX_CHECK_MATERIAL_REFILL` | Continue/refire refill handling after a filament-error or ending-material state. |
 | `WAIT_EXTRUSION_ALL_MATERIALS` | Wait until ending-material/auto-refill extrusion flows finish. |
 | `BOX_EXTRUSION_ALL_MATERIALS` | Manually run the ending-material extrusion flow. |
