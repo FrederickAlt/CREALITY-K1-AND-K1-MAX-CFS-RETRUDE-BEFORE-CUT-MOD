@@ -12,21 +12,56 @@ For the full material-change sequence, see
 
 ## Interpretation notes
 
-- Stage numbers are device/wrapper compatibility labels.
+- The stage value is a protocol byte inside the `EXTRUDE_PROCESS` request payload:
+
+  ```text
+  SLOT | STAGE | EXTRUDE_AMOUNT
+  ```
+
+  This makes the stage values observable on the serial interface during loading.
+- Stage numbers are protocol enum values, not a consecutive step count. Missing
+  numbers mean only that no useful compatibility role is documented here.
 - Human-readable names below describe observed behavior, not confirmed firmware
   terminology.
-- Normal loading uses stages `0`, `4`, `5`, and `7`; stage `6` is used during an
-  advance/recovery event path; stage `3` appears diagnostic/reserved for
-  normal wrappers.
-- Some wrapper descriptions use the label "stage 8" for a final phase. In the observed command
-  stream this is a wrapper-side final verification phase that sends stage `7`
-  requests and checks buffer/local state.
+- Normal wrapper-managed loading uses stages `0`, `4`, `5`, and `7`; stage `6`
+  is used during an advance/recovery event path. Stages `2` and `3` are not
+  needed for the normal loading sequence described here.
+- The public diagnostic macro `BOX_EXTRUDE_PROCESS` sends stage `2` for supported
+  configurations. Treat that macro as a direct diagnostic command, not as the
+  full wrapper-managed loading sequence.
+- Some wrapper descriptions use the label "stage 8" for a final phase. In the
+  observed command stream this is a wrapper-side final verification phase that
+  sends stage `7` requests and checks buffer/local state.
+
+## How the stage byte is used
+
+`EXTRUDE_PROCESS` is one serial command id (`0x0d`) with a stage byte that selects
+which part of loading the box should perform or report on. A normal load does not
+send one command and wait for completion. It uses a staged exchange:
+
+```text
+stage 0  -> prepare/start loading for the selected slot
+stage 4  -> begin the main material advance
+stage 5  -> poll progress/result until done or failed
+stage 7  -> advance during final buffer/local verification when needed
+```
+
+The wrapper decides when to move from one stage to the next based on command
+responses and live sensor checks. For an independent wrapper, the relevance is:
+
+- use stage values as protocol enum values, not as a loop counter;
+- expect progress polling rather than a single blocking load command;
+- stop on unknown/fatal response states instead of guessing;
+- verify buffer/local filament state before marking the material loaded;
+- treat stage `2` and stage `3` as diagnostic/reserved unless validated on the
+  target hardware.
 
 ## Stage summary
 
 | Stage | Compatibility role | When used | Expected observable result |
 |---:|---|---|---|
 | `0` | Start/reset loading for a selected slot. | Before staged loading and after reset-style recovery. | The box accepts the load start and the wrapper can proceed. |
+| `2` | Public diagnostic macro stage. | Sent by `BOX_EXTRUDE_PROCESS` in supported configurations. | Useful for diagnostics only; not the normal managed load sequence. |
 | `3` | Diagnostic/reserved retry stage. | Not part of the normal load sequence. | Treat as hardware validation needed before using. |
 | `4` | Begin the main material advance. | After stage `0` succeeds. | Stage `5` polling can begin. |
 | `5` | Poll loading progress/result. | During the main loading wait. | Continue, finish, or return an error state. |
@@ -73,6 +108,13 @@ retrude the target slot toward a known material-sensor position
 send stage 0 again
 stop if the retry fails
 ```
+
+### Stage 2: public diagnostic macro default
+
+Stage `2` is sent by the public `BOX_EXTRUDE_PROCESS` diagnostic macro for the
+supported configurations documented here. It is not the normal wrapper-managed
+load path. Use the higher-level loading commands for production material changes,
+or validate stage `2` on hardware before relying on it directly.
 
 ### Stage 3: diagnostic/reserved
 
@@ -152,6 +194,7 @@ response category, and observable sensor state.
 | Area | Uncertainty |
 |---|---|
 | Firmware stage names | Numeric stages are known, but firmware-side names are not confirmed. |
+| Stage `2` | Public diagnostic macro default; not part of normal managed loading. |
 | Stage `3` | Not required for normal loading; validate before use. |
 | Stage `5` edge states | Unknown or unexpected states should stop safely. |
 | Final verification naming | "Stage 8" is a wrapper-side phase name, not a confirmed transmitted stage byte. |
