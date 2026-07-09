@@ -20,7 +20,7 @@ For the full material-change sequence, see
 
   This makes the stage values observable on the serial interface during loading.
 - Stage numbers are protocol enum values, not a consecutive step count. Missing
-  numbers mean only that no useful compatibility role is documented here.
+  numbers mean only that no useful compatibility role was observed.
 - Human-readable names below describe observed behavior, not confirmed firmware
   terminology.
 - Normal wrapper-managed loading uses stages `0`, `4`, `5`, and `7`; stage `6`
