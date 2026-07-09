@@ -6,7 +6,8 @@ This document explains the material-box wrapper's automatic refill behavior: how
 it detects compatible replacement material, how it remaps tools, how runout
 interacts with ending-material flushing, and which commands are involved.
 
-It is written for readers who do **not** have access to the source code.
+It is written for readers who would like to understand how to replace certain
+wrapper functionality with a custom code/wrapper.
 
 For the state model behind `Tnn`, `Tnn_map`, `same_material`, and `last_cmd`, see
 [`state-model.md`](state-model.md). For exact persisted remap/resume JSON and
