@@ -43,7 +43,7 @@ change fan state, cut material, write config files, or remap tools.
 General guidance:
 
 - Treat material/tool-change commands as **motion and extrusion commands**.
-- Treat `MODIFY_BOX_CFG` and `SAVE_BOX_CFG` as **persistent configuration
+- Treat `MODIFY_BOX_CFG` and `SAVE_BOX_CFG` as **persistent configuration-
   changes**.
 - Treat `BOX_MODIFY_TN*` commands as **state overrides**.
 - Avoid running material-change commands during resume unless the command is
@@ -161,131 +161,21 @@ byte `0x0f`. See
 
 ## State and mapping commands
 
-### `BOX_MODIFY_TN`
-
-Changes the mutable virtual/physical slot mapping.
-
-Syntax:
-
-```gcode
-BOX_MODIFY_TN T1A=T2C
-```
-
-Meaning:
-
-```text
-logical slot T1A now points to actual physical slot T2C
-```
-
-This updates and persists the wrapper's `Tnn_map`. See
-[`state-model.md`](state-model.md#state-machine-5-virtual-tool-mapping).
-
-Caution: this is a direct state override. Use it only when you understand the
-current material mapping.
+| Command | Syntax | Purpose / caution |
+|---|---|---|
+| `BOX_MODIFY_TN` | `BOX_MODIFY_TN T1A=T2C` | Remap logical slot `T1A` to physical slot `T2C` and persist `Tnn_map`. Direct state override. |
+| `BOX_MODIFY_TN_DATA` | `BOX_MODIFY_TN_DATA ADDR=<1..4> PART=<field> [NUM=A\|B\|C\|D] DATA=<value>` | Edit live material-box state, for example `PART=vender NUM=A DATA=unknown`. Can make state disagree with hardware. |
+| `BOX_MODIFY_TN_INNER_DATA` | `BOX_MODIFY_TN_INNER_DATA ADDR=<1..4> PART=<field> [NUM=<value>] DATA=<value>` | Low-level state edit. Public macro shape is not useful for editing material/connection sensor subparts; prefer real sensor queries. |
+| `BOX_SHOW_TNN_INNER_DATA` | `BOX_SHOW_TNN_INNER_DATA` | Print current material-box state. |
+| `BOX_UPDATE_SAME_MATERIAL_LIST` | `BOX_UPDATE_SAME_MATERIAL_LIST` | Recompute same-material groups from current material identity. |
+| `BOX_ENABLE_AUTO_REFILL` | `BOX_ENABLE_AUTO_REFILL ENABLE=<0\|1>` | Set runtime auto-refill flag. Intended values are `0`/`1`. Separate from `BOX_ENABLE_CFS_PRINT`. |
+| `BOX_ADD_TNN` | `BOX_ADD_TNN TNN=<Tnn>` | Store a resume target material, for example `TNN=T1A`. |
 
 Config-only custom toolchange macros sometimes wrap `BOX_MODIFY_TN` to maintain a
-macro-side mirror of remaps. That mirror can track normal manual remaps and
-normal auto-refill remaps that pass through `BOX_MODIFY_TN`, but it cannot read
-`tn_data.json` or see mappings restored directly by `BOX_POWER_LOSS_RESTORE`.
-See [`state-model.md`](state-model.md#macro-visibility-of-tnn_map).
-
-### `BOX_MODIFY_TN_DATA`
-
-Directly edits live material-box state.
-
-Syntax:
-
-```gcode
-BOX_MODIFY_TN_DATA ADDR=<1..4> PART=<field> [NUM=A|B|C|D] DATA=<value>
-```
-
-Examples:
-
-```gcode
-BOX_MODIFY_TN_DATA ADDR=1 PART=vender NUM=A DATA=unknown
-BOX_MODIFY_TN_DATA ADDR=1 PART=state DATA=connect
-```
-
-Use cases:
-
-- manual correction during testing;
-- forcing a state for diagnostics;
-- recovering from inconsistent status.
-
-Caution: this can make wrapper state disagree with physical box state.
-
-### `BOX_MODIFY_TN_INNER_DATA`
-
-Attempts to directly edit inner state.
-
-Syntax:
-
-```gcode
-BOX_MODIFY_TN_INNER_DATA ADDR=<1..4> PART=<field> [NUM=<value>] DATA=<value>
-```
-
-Known caveat: the public macro shape does not clearly pass a sensor subpart such as
-`material` or `connections`, so it may not be useful for editing filament sensor
-inner state. Prefer real sensor queries:
-
-```gcode
-BOX_GET_FILAMENT_SENSOR_STATE ADDR=1 POSITION=MATERIAL
-BOX_GET_FILAMENT_SENSOR_STATE ADDR=1 POSITION=CONNECTIONS
-```
-
-### `BOX_SHOW_TNN_INNER_DATA`
-
-Prints the current material-box state object. Color values may be converted to
-known display color names when recognized.
-
-Syntax:
-
-```gcode
-BOX_SHOW_TNN_INNER_DATA
-```
-
-### `BOX_UPDATE_SAME_MATERIAL_LIST`
-
-Recomputes compatible-material groups from current material identity state.
-
-Syntax:
-
-```gcode
-BOX_UPDATE_SAME_MATERIAL_LIST
-```
-
-See [`state-model.md`](state-model.md#derived-same-material-groups).
-
-### `BOX_ENABLE_AUTO_REFILL`
-
-Sets the runtime auto-refill flag.
-
-Syntax:
-
-```gcode
-BOX_ENABLE_AUTO_REFILL ENABLE=<0|1>
-```
-
-Intended values are `0` and `1`; other values should be avoided. This affects runtime state. It is separate from the CFS-print
-enable flag controlled by `BOX_ENABLE_CFS_PRINT`.
-
-### `BOX_ADD_TNN`
-
-Stores a resume target material on the toolhead state.
-
-Syntax:
-
-```gcode
-BOX_ADD_TNN TNN=<Tnn>
-```
-
-Example:
-
-```gcode
-BOX_ADD_TNN TNN=T1A
-```
-
-Used by resume-related paths.
+macro-side remap mirror. That mirror can track visible manual and auto-refill
+remaps, but it cannot read `tn_data.json` or see mappings restored directly by
+`BOX_POWER_LOSS_RESTORE`. See
+[`state-model.md#macro-visibility-of-tnn_map`](state-model.md#macro-visibility-of-tnn_map).
 
 ## Configuration and calibration commands
 
@@ -445,271 +335,33 @@ Queued command lines are replayed by `BOX_TNN_RETRY_PROCESS` only from a
 
 After extrusion, it runs nozzle cleaning and a small retract.
 
-## Print lifecycle commands
+## Print lifecycle, preloading, and recovery commands
 
-| Command | Syntax | Purpose |
+| Command | Syntax | Key behavior / side effects |
 |---|---|---|
-| `BOX_START_PRINT` | `BOX_START_PRINT` | Start-print setup for connected boxes. |
-| `BOX_END_PRINT` | `BOX_END_PRINT` | End-print cleanup for connected boxes. |
-| `BOX_END` | `BOX_END` | Higher-level end action; may cut/retrude/move safe depending on state. |
-| `BOX_ENABLE_CFS_PRINT` | `BOX_ENABLE_CFS_PRINT ENABLE=<0|1>` | Enable/disable CFS/material-box printing state and persist it. |
-| `BOX_POWER_LOSS_RESTORE` | `BOX_POWER_LOSS_RESTORE` | Restore selected persisted state after power loss. |
-| `BOX_RESUME_EXTRUDE` | `BOX_RESUME_EXTRUDE` | Dedicated resume extrusion path. |
-| `DO_AFTER_PAUSE` | `DO_AFTER_PAUSE` | Wait for pause state and then run `WAIT_PAUSE`. |
+| `BOX_START_PRINT` | `BOX_START_PRINT` | Start-print setup for connected boxes; may close preloading and disables tighten-up. |
+| `BOX_END_PRINT` | `BOX_END_PRINT` | End-print cleanup: may open preloading, enable tighten-up, reset mapping, clean resume fields, set box enable state to `0`, and disable `filament_sensor_2`. |
+| `BOX_END` | `BOX_END` | Higher-level end action; may cut, retrude, or move safe depending on state. |
+| `BOX_ENABLE_CFS_PRINT` | `BOX_ENABLE_CFS_PRINT ENABLE=<0\|1>` | Persist CFS/material-box print enable. `0` enables `filament_sensor_2`; `1` disables it. |
+| `BOX_POWER_LOSS_RESTORE` | `BOX_POWER_LOSS_RESTORE` | Restore persisted enable state, virtual mapping, and last active material. |
+| `BOX_RESUME_EXTRUDE` | `BOX_RESUME_EXTRUDE` | Dedicated resume extrusion path. Runs only when the resume target matches current material; can move Z/XY, heat, set box `PRINT`, toggle `fan0`, extrude, clean, retract, and restore speed/Z. |
+| `DO_AFTER_PAUSE` | `DO_AFTER_PAUSE` | Wait for pause state and run the pause-after hook. |
+| `BOX_SET_PRE_LOADING` | `BOX_SET_PRE_LOADING [ADDR=<0..4>] ACTION=CLOSE\|OPEN\|RUN\|TIGHT [NUM=<0..15>] [POWER_ON=ENABLE\|DISABLE]` | Open/close/run/tighten preloading. `ADDR=0` or omitted applies to connected boxes. `POWER_ON` stores startup behavior. May be skipped while printing/paused unless forced by a wrapper-managed path. |
+| `BOX_TIGHTEN_UP_ENABLE` | `BOX_TIGHTEN_UP_ENABLE ADDR=<1..4> ENABLE=ENABLE\|DISABLE` or `BOX_TIGHTEN_UP_ENABLE NUM=<1..4> ENABLE=ENABLE\|DISABLE` | Enable/disable tighten-up behavior for one box. |
+| `BOX_TNN_RETRY_PROCESS` | `BOX_TNN_RETRY_PROCESS` | Retry the currently recorded material-box error path; may move, heat, flush, and resume a paused print after success. |
+| `BOX_ERROR_CLEAR` | `BOX_ERROR_CLEAR` | Clear the recorded error; may set an affected box/slot idle. Does not replay queued macro work. |
+| `BOX_CUSTOM_COMMAND` | `BOX_CUSTOM_COMMAND CMD=<subcommand>` | Helper command. Supported `CMD`: `XYZ_ZERO`, `COORDINATES_ADJUST_PREPARE`, `COORDINATES_ADJUST_SAVE_POS`, `Y_SAFE`. |
 
-### `BOX_ENABLE_CFS_PRINT`
-
-Syntax:
-
-```gcode
-BOX_ENABLE_CFS_PRINT ENABLE=<0|1>
-```
-
-Behavior:
-
-| `ENABLE` | Meaning | Local filament sensor command |
-|---:|---|---|
-| `0` | Disable box/CFS printing. | Enable `filament_sensor_2`. |
-| `1` | Enable box/CFS printing. | Disable `filament_sensor_2`. |
-
-This value is persisted for power-loss restore.
-
-### `BOX_START_PRINT`
-
-For each connected box:
-
-- optionally closes preloading if preloading-on-power is enabled;
-- disables tighten-up behavior.
-
-### `BOX_END_PRINT`
-
-For each connected box:
-
-- opens preloading if preloading is enabled;
-- enables tighten-up behavior;
-- resets virtual slot mapping to identity;
-- cleans power-loss resume fields;
-- sets box enable state to `0`;
-- disables `filament_sensor_2`.
-
-### `BOX_POWER_LOSS_RESTORE`
-
-Restores persisted:
-
-- enable state;
-- virtual slot mapping;
-- last active material.
-
-See [`state-model.md`](state-model.md#state-machine-7-persisted-and-resume-state).
-
-### `BOX_RESUME_EXTRUDE`
-
-`BOX_RESUME_EXTRUDE` only proceeds when it can find a resume target and that
-resolved target matches the current `last_cmd` physical material content. When it
-runs, it has substantial side effects: it raises Z, moves to the extrude
-position, sets the box to `PRINT`, heats, temporarily turns `fan0` off, extrudes,
-cleans the nozzle, moves safe, retracts slightly, restores Z, and restores the
-saved G-code speed.
-
-## Preloading and tighten-up commands
-
-### `BOX_SET_PRE_LOADING`
-
-Syntax:
-
-```gcode
-BOX_SET_PRE_LOADING [ADDR=<0..4>] ACTION=CLOSE|OPEN|RUN|TIGHT [NUM=<0..15>] [POWER_ON=ENABLE|DISABLE]
-```
-
-Behavior:
-
-| Parameter | Meaning |
-|---|---|
-| `ADDR` | Box address. `0` or omitted means apply to all connected boxes. |
-| `ACTION` | `CLOSE`, `OPEN`, `RUN`, or `TIGHT`. |
-| `NUM` | Slot mask, default `15` / all slots. |
-| `POWER_ON` | Optional persistent runtime flag: `ENABLE` or `DISABLE`. |
-
-Side effects:
-
-- `ACTION=CLOSE` marks preloading disabled.
-- `ACTION=OPEN` marks preloading enabled.
-- `POWER_ON=ENABLE|DISABLE` sets whether preloading should run on power-on/start.
-
-The underlying serial command may be skipped while printing or paused unless the
-the wrapper uses a forced path.
-
-### `BOX_TIGHTEN_UP_ENABLE`
-
-Syntax:
-
-```gcode
-BOX_TIGHTEN_UP_ENABLE ADDR=<1..4> ENABLE=ENABLE|DISABLE
-```
-
-Alternative address parameter:
-
-```gcode
-BOX_TIGHTEN_UP_ENABLE NUM=<1..4> ENABLE=ENABLE|DISABLE
-```
-
-Enables or disables tighten-up behavior for one box.
-
-## Error and recovery commands
-
-Detailed error behavior belongs in `errors-and-recovery.md`.
-
-| Command | Syntax | Purpose |
-|---|---|---|
-| `BOX_TNN_RETRY_PROCESS` | `BOX_TNN_RETRY_PROCESS` | Retry the currently recorded material-box error path. |
-| `BOX_ERROR_CLEAR` | `BOX_ERROR_CLEAR` | Clear or partially resolve the currently recorded error. |
-
-High-level behavior:
-
-```text
-BOX_TNN_RETRY_PROCESS:
-    inspect current recorded error
-    choose retry path based on error type
-    run recovery material/cut/flush path
-    resume print if recovery succeeded and print is paused
-
-BOX_ERROR_CLEAR:
-    inspect current recorded error
-    set affected box/slot idle when needed
-    clear recorded error state
-```
-
-Some ordinary workflow macros queue themselves when an error is already recorded.
-That queued macro list is replayed by macro-error recovery.
-
-## Custom command helper
-
-### `BOX_CUSTOM_COMMAND`
-
-Syntax:
-
-```gcode
-BOX_CUSTOM_COMMAND CMD=<subcommand>
-```
-
-Supported subcommands:
-
-| Subcommand | Behavior |
-|---|---|
-| `XYZ_ZERO` | Runs `G28` and records result `XYZ_ZERO=0`. |
-| `COORDINATES_ADJUST_PREPARE` | Moves Z/Y/X to a coordinate-adjustment preparation position. |
-| `COORDINATES_ADJUST_SAVE_POS` | Saves current toolhead X/Y as extrude position using config commands. |
-| `Y_SAFE` | Moves to configured safe Y. |
-
-The last result string is exposed in wrapper status as `custom_command_result`.
-
-## Command quick reference by risk level
-
-For a table of every public named command and its primary
-side-effect class, see
-[`runtime-reference.md#public-g-code-command-inventory`](runtime-reference.md#public-g-code-command-inventory).
-
-### Mostly read-only diagnostics
-
-```text
-BOX_GET_BOX_STATE
-BOX_GET_VERSION_SN
-BOX_GET_RFID
-BOX_GET_REMAIN_LEN
-BOX_GET_BUFFER_STATE
-BOX_GET_FILAMENT_SENSOR_STATE
-BOX_GET_FIVE_WAY_STATE
-BOX_MEASURING_WHEEL ACTION=GET
-BOX_CUT_STATE
-BOX_GET_FLUSH_LEN
-BOX_GET_FLUSH_VELOCITY_TEST
-BOX_SHOW_TNN_INNER_DATA
-```
-
-### Direct state/config/box-mode mutation
-
-```text
-BOX_MODIFY_TN
-BOX_MODIFY_TN_DATA
-BOX_MODIFY_TN_INNER_DATA
-BOX_ENABLE_AUTO_REFILL
-BOX_ENABLE_CFS_PRINT
-BOX_SET_BOX_MODE
-BOX_SET_PRE_LOADING
-BOX_TIGHTEN_UP_ENABLE
-MODIFY_BOX_CFG
-SAVE_BOX_CFG
-BOX_SAVE_EXTRUDE_POS
-BOX_POWER_LOSS_RESTORE
-```
-
-### Direct serial or motor actions
-
-```text
-BOX_SEND_DATA
-BOX_CREATE_CONNECT
-BOX_CTRL_CONNECTION_MOTOR_ACTION
-BOX_EXTRUDE_PROCESS
-BOX_EXTRUDE_2_PROCESS
-BOX_RETRUDE_PROCESS
-BOX_COMMUNICATION_TEST
-```
-
-### Motion/fan/hardware actions
-
-```text
-MOVE_BOX_PRE_CUT_POS
-MOVE_BOX_CUT_POS
-TEST_BOX_EXTRUDE
-BOX_FIND_CUT_POS
-BOX_GO_TO_EXTRUDE_POS
-BOX_GO_TO_BOX_EXTRUDE_POS
-BOX_MOVE_TO_SAFE_POS
-BOX_MOVE_TO_CUT
-BOX_CUT_MATERIAL
-BOX_NOZZLE_CLEAN
-TEST_BOX_CLEAN
-BOX_BLOW
-BOX_SAVE_FAN
-BOX_RESTORE_FAN
-BOX_CUSTOM_COMMAND
-```
-
-### Material workflow actions
-
-```text
-T0..T15
-T1A..T4D
-BOX_EXTRUDE_MATERIAL
-BOX_RETRUDE_MATERIAL
-BOX_RETRUDE_MATERIAL_WITH_TNN
-BOX_EXTRUDER_EXTRUDE
-BOX_MATERIAL_FLUSH
-BOX_MATERIAL_CHANGE_FLUSH
-BOX_EXTRUSION_ALL_MATERIALS
-BOX_CHECK_MATERIAL_REFILL
-BOX_RESUME_EXTRUDE
-```
-
-### Error/recovery/lifecycle
-
-```text
-BOX_TNN_RETRY_PROCESS
-BOX_ERROR_CLEAR
-BOX_START_PRINT
-BOX_END_PRINT
-BOX_END
-DO_AFTER_PAUSE
-RESTORE_POSITION
-WAIT_EXTRUSION_ALL_MATERIALS
-```
+Detailed recovery behavior belongs in [`errors-and-recovery.md`](errors-and-recovery.md).
+Power-loss restore state is summarized in
+[`state-model.md#state-machine-7-persisted-and-resume-state`](state-model.md#state-machine-7-persisted-and-resume-state).
 
 ## Known macro-interface caveats
 
 | Area | Notes |
 |---|---|
 | Direct vs workflow commands | Some commands that sound direct, such as `BOX_CUT_MATERIAL`, run larger workflows and can move hardware. |
-| Error queue semantics | Several direct material macros queue command lines instead of aborting immediately; see [`errors-and-recovery.md`](errors-and-recovery.md#commands-that-record-or-queue-without-aborting). |
+| Error queue semantics | Several direct material macros queue command lines instead of aborting immediately; see [`errors-and-recovery.md`](errors-and-recovery.md#commands-that-may-defer-failure-handling). |
 | `BOX_ERROR_CLEAR` side effects | May set a box idle, clears the last alarm string, and discards queued macro replay. |
 | `BOX_TNN_RETRY_PROCESS` side effects | May move axes, heat, set box modes, flush, restore acceleration, and resume a paused print after success. |
 | `BOX_GET_BUFFER_STATE` | Treat command output as an immediate observation unless your wrapper owns a reliable cache; see [`compatibility-caveats.md`](compatibility-caveats.md#buffer-state-caution). |
